@@ -1,0 +1,7 @@
+name: MobMask
+main: com.craftilandia.friendlymobs.Main
+version: 4.0
+permissions:
+    mobmask.use:
+        description: permission to use the mask and not receive damage.
+        default: op
