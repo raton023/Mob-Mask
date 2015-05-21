@@ -4,10 +4,28 @@ import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Blaze;
+import org.bukkit.entity.CaveSpider;
+import org.bukkit.entity.Chicken;
+import org.bukkit.entity.Cow;
 import org.bukkit.entity.Creeper;
+import org.bukkit.entity.Enderman;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Ghast;
+import org.bukkit.entity.IronGolem;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.MagmaCube;
+import org.bukkit.entity.MushroomCow;
+import org.bukkit.entity.Ocelot;
+import org.bukkit.entity.Pig;
+import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Skeleton;
+import org.bukkit.entity.Slime;
+import org.bukkit.entity.Spider;
+import org.bukkit.entity.Squid;
+import org.bukkit.entity.Villager;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,6 +43,10 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
+		getConfig().getDefaults();
+		int rate = getConfig().getInt("rate");
+		getConfig().set("rate", rate);		
+		saveConfig();
 		}
 	
 	@EventHandler
@@ -32,14 +54,43 @@ public class Main extends JavaPlugin implements Listener {
 		if (e.getEntity() instanceof Player){
 
 		Player p = (Player)e.getEntity();
+		if(p.hasPermission("mobmask.use")){
 		if (p.getInventory().getHelmet() != null) {//check if null. very important
 			if(p.getInventory().getHelmet().getType().equals(Material.SKULL_ITEM)){
-				e.setCancelled(true);}
+				e.setCancelled(true);}}
 		}}}//Monsters set to make no damage
 			
 	  @EventHandler
 	  public void onEntityDeath(EntityDeathEvent event){
+		  
 		  if(event.getEntity() instanceof Zombie) {
+			  
+			  LivingEntity entity = event.getEntity();
+  			  if ((entity instanceof PigZombie)) {
+  				ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+	  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+	  			  head.setDurability((short) 3); // 3 is for player head
+	  			  skullMeta.setOwner("MHF_PigZombie");
+	  			  head.setItemMeta(skullMeta);
+	  			if (dropeos.isEmpty()) {
+	  				  dropeos.add(1); 
+	  			}
+	  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+	  				  event.getDrops().add(head);
+	  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+	  				  dropeos.clear();
+	  				  dropeos.add(1);}
+	  			  if(event.getEntity().getKiller() instanceof Player){
+	  				int total = dropeos.get(0) + 1;		  				
+	  				if(event.getEntity().getKiller().getItemInHand() != null){
+	  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+	  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+	  				total = dropeos.get(0) + level;
+	  				}}
+	  				dropeos.set(0, total);
+	  				}
+  			  }
+  			  else{
 		  			  if(event.getEntity().getType().equals(EntityType.ZOMBIE)){
 		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
@@ -47,7 +98,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= 300){
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
 		  				  dropeos.clear();
@@ -60,7 +111,7 @@ public class Main extends JavaPlugin implements Listener {
 		  				total = dropeos.get(0) + level;
 		  				}}
 		  				dropeos.set(0, total);
-		  				}}}
+		  				}}}}
 		  
 		  		  if(event.getEntity() instanceof Skeleton) {
 		  			  if(event.getEntity().getType().equals(EntityType.SKELETON)){
@@ -69,8 +120,9 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setDurability((short) 0); 
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
-		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= 300){
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
 		  				  dropeos.clear();
@@ -84,6 +136,7 @@ public class Main extends JavaPlugin implements Listener {
 		  				}}
 		  				dropeos.set(0, total);
 		  				}}}
+		  		  
 		  		  if(event.getEntity() instanceof Player) {
 		  			  Player p = (Player)event.getEntity();
 		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
@@ -93,9 +146,9 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= 300){
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated " + event.getEntity().getName());
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -114,7 +167,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= 300){
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
 		  				  dropeos.clear();
@@ -127,4 +180,325 @@ public class Main extends JavaPlugin implements Listener {
 		  				total = dropeos.get(0) + level;
 		  				}}
 		  				dropeos.set(0, total);
-		  				}}}}
+		  				}}
+		  		if(event.getEntity() instanceof Spider) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			
+		  			  LivingEntity entity = event.getEntity();
+		  			  if ((entity instanceof CaveSpider)) {
+		  				skullMeta.setOwner("MHF_CaveSpider");}
+		  			  else{
+		  				skullMeta.setOwner("MHF_Spider");
+		  			  }
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Enderman) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Enderman");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Blaze) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Blaze");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Squid) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Squid");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof IronGolem) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Golem");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		
+		  		if(event.getEntity() instanceof Ghast) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Ghast");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Pig) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Pig");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Villager) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Villager");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Sheep) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Sheep");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Cow) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			LivingEntity entity = event.getEntity();
+		  			  if ((entity instanceof MushroomCow)) {
+		  				skullMeta.setOwner("MHF_MushroomCow");}
+		  			  else{
+		  				skullMeta.setOwner("MHF_Cow");
+		  			  }		  			  
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Chicken) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Chicken");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		if(event.getEntity() instanceof Ocelot) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			  skullMeta.setOwner("MHF_Ocelot");
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		
+		  		if(event.getEntity() instanceof Slime) {
+		  			  ItemStack head = new ItemStack(Material.SKULL_ITEM, 1);
+		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+		  			  head.setDurability((short) 3); // 3 is for player head
+		  			LivingEntity entity = event.getEntity();
+		  			  if ((entity instanceof MagmaCube)) {
+		  				skullMeta.setOwner("MHF_LavaSlime");}
+		  			  else{
+		  				skullMeta.setOwner("MHF_Slime");
+		  			  }		  		
+		  			  head.setItemMeta(skullMeta);
+		  			if (dropeos.isEmpty()) {
+		  				  dropeos.add(1); 
+		  			}
+		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  				  event.getDrops().add(head);
+		  				  Bukkit.broadcastMessage(event.getEntity().getKiller().getName() + " has decapetated a " + event.getEntity().getName());
+		  				  dropeos.clear();
+		  				  dropeos.add(1);}
+		  			  if(event.getEntity().getKiller() instanceof Player){
+		  				int total = dropeos.get(0) + 1;		  				
+		  				if(event.getEntity().getKiller().getItemInHand() != null){
+		  			if(event.getEntity().getKiller().getItemInHand().containsEnchantment(Enchantment.LOOT_BONUS_MOBS)){	
+		  				int level = event.getEntity().getKiller().getItemInHand().getEnchantmentLevel(Enchantment.LOOT_BONUS_MOBS);		  				
+		  				total = dropeos.get(0) + level;
+		  				}}
+		  				dropeos.set(0, total);
+		  				}}
+		  		
+	  
+	  
+	  }}
