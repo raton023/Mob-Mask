@@ -1,7 +1,12 @@
 name: MobMask
-main: com.craftilandia.friendlymobs.Main
-version: 4.0
+main: com.craftilandia.mobmask.Main
+version: 5.0
+author: raton023
+website: http://dev.bukkit.org/bukkit-plugins/mobmask/
 permissions:
     mobmask.use:
         description: permission to use the mask and not receive damage.
+        default: op
+    mobmask.skin:
+        description: permission to change skin to skin owner of mask when wearing a mask.
         default: op
