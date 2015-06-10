@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Bat;
 import org.bukkit.entity.Blaze;
@@ -20,6 +21,7 @@ import org.bukkit.entity.Horse;
 import org.bukkit.entity.IronGolem;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.MagmaCube;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.MushroomCow;
 import org.bukkit.entity.Ocelot;
 import org.bukkit.entity.Pig;
@@ -39,8 +41,9 @@ import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -53,26 +56,36 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
-		getConfig().getDefaults();
-		int rate = getConfig().getInt("rate");
-		getConfig().set("rate", rate);		
+		getConfig().options().copyHeader();
+		getConfig().options().copyDefaults(true);
+		if(getConfig().getString("rate") == null){
+			getConfig().set("rate", 300);
+		}
+		if(getConfig().getString("deathmsg") == null){
+			getConfig().set("deathmsg", "&aKILLER &fhas decapetated a &4VICTIM");
+		}
 		saveConfig();
 		}
 	
 	@EventHandler
-	public void damage(EntityDamageEvent e){	
-		if (e.getEntity() instanceof Player){
+	public void noami(EntityTargetLivingEntityEvent e){
+		if (e.getTarget() instanceof Player){
 
-		Player p = (Player)e.getEntity();
-		if(p.hasPermission("mobmask.use")){
-		if (p.getInventory().getHelmet() != null) {//check if null. very important
-			if(p.getInventory().getHelmet().getType().equals(Material.SKULL_ITEM)){
-				e.setCancelled(true);}}
-		}}}//Monsters set to make no damage
+			Player p = (Player)e.getTarget();
+			if(p.hasPermission("mobmask.use") && e.getEntity() instanceof Monster){
+			if (p.getInventory().getHelmet() != null) {//check if null. very important
+				if(p.getInventory().getHelmet().getType().equals(Material.SKULL_ITEM)){
+					e.setCancelled(true);}}
+			}}
+	}
+	
 			
 	  @EventHandler
 	  public void onEntityDeath(EntityDeathEvent event){
 		  
+		  if(event.getEntity().getKiller() instanceof Player){
+		  String getmsg = getConfig().getString("deathmsg").replace("KILLER", event.getEntity().getKiller().getName()).replace("VICTIM", event.getEntity().getName().toString());
+			String msg = ChatColor.translateAlternateColorCodes('&', getmsg);
 		  if(event.getEntity() instanceof Zombie) {
 			  
 			  LivingEntity entity = event.getEntity();
@@ -81,13 +94,14 @@ public class Main extends JavaPlugin implements Listener {
 	  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 	  			  head.setDurability((short) 3); // 3 is for player head
 	  			  skullMeta.setOwner("MHF_PigZombie");
+	  			  skullMeta.setDisplayName("Pigman Head");
 	  			  head.setItemMeta(skullMeta);
 	  			if (dropeos.isEmpty()) {
 	  				  dropeos.add(1); 
 	  			}
 	  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 	  				  event.getDrops().add(head);
-	  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Pigman");
+	  				  Bukkit.broadcastMessage(msg);
 	  				  dropeos.clear();
 	  				  dropeos.add(1);}
 	  			  if(event.getEntity().getKiller() instanceof Player){
@@ -110,7 +124,7 @@ public class Main extends JavaPlugin implements Listener {
 		  				  dropeos.add(1); }
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Zombie");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -134,7 +148,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Skeleton");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -158,7 +172,7 @@ public class Main extends JavaPlugin implements Listener {
 		  				  dropeos.add(1); }
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated " + p.getPlayer().getName());
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -179,7 +193,7 @@ public class Main extends JavaPlugin implements Listener {
 		  				  dropeos.add(1); }
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Creeper");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -198,9 +212,11 @@ public class Main extends JavaPlugin implements Listener {
 		  			
 		  			  LivingEntity entity = event.getEntity();
 		  			  if ((entity instanceof CaveSpider)) {
-		  				skullMeta.setOwner("MHF_CaveSpider");}
+		  				skullMeta.setOwner("MHF_CaveSpider");
+		  				skullMeta.setDisplayName("Cave Spider Head");}
 		  			  else{
 		  				skullMeta.setOwner("MHF_Spider");
+		  				skullMeta.setDisplayName("Spider Head");
 		  			  }
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
@@ -208,7 +224,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Spider");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -225,13 +241,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Enderman");
+		  			  skullMeta.setDisplayName("Enderman Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Enderman");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -248,13 +265,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("Blu3B3ar_");
+		  			  skullMeta.setDisplayName("Guardian Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Guardian");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -272,13 +290,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("Master0r0");
+		  			  skullMeta.setDisplayName("Rabbit Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Rabbit");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -295,13 +314,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("PUNKwithFUNK");
+		  			  skullMeta.setDisplayName("Bat Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Bat");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -318,13 +338,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("Quex");
+		  			  skullMeta.setDisplayName("SilverFish Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a SilverFish");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -341,13 +362,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("WIbigdog");
+		  			  skullMeta.setDisplayName("Witch Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Witch");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -364,13 +386,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("GoogleChrome");
+		  			  skullMeta.setDisplayName("Wolf Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Wolf");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -387,13 +410,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Pumpkin");
+		  			  skullMeta.setDisplayName("Snowman Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Snowman");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -410,13 +434,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("Whitehman");
+		  			  skullMeta.setDisplayName("Endermite Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Endermite");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -433,13 +458,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("pukkapieman");
+		  			  skullMeta.setDisplayName("Horse Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Horse");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -459,13 +485,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Blaze");
+		  			  skullMeta.setDisplayName("Blaze Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Blaze");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -482,13 +509,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Squid");
+		  			  skullMeta.setDisplayName("Squid Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Squid");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -505,13 +533,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Golem");
+		  			  skullMeta.setDisplayName("IronGolem Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Iron Golem");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -529,13 +558,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Ghast");
+		  			  skullMeta.setDisplayName("Ghast Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Ghast");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -552,13 +582,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Pig");
+		  			  skullMeta.setDisplayName("Pig Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Pig");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -575,13 +606,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Villager");
+		  			  skullMeta.setDisplayName("Villager Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Villager");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -598,13 +630,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Sheep");
+		  			  skullMeta.setDisplayName("Sheep Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Sheep");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -622,9 +655,11 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			LivingEntity entity = event.getEntity();
 		  			  if ((entity instanceof MushroomCow)) {
-		  				skullMeta.setOwner("MHF_MushroomCow");}
+		  				skullMeta.setOwner("MHF_MushroomCow");
+		  				skullMeta.setDisplayName("Mushroom Cow Head");}
 		  			  else{
 		  				skullMeta.setOwner("MHF_Cow");
+		  				skullMeta.setOwner("Cow Head");
 		  			  }		  			  
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
@@ -632,7 +667,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Cow");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -649,13 +684,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Chicken");
+		  			  skullMeta.setDisplayName("Chicken Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Chicken");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -672,13 +708,14 @@ public class Main extends JavaPlugin implements Listener {
 		  			  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			  skullMeta.setOwner("MHF_Ocelot");
+		  			  skullMeta.setDisplayName("Ocelot Head");
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Ocelot");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -697,9 +734,11 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setDurability((short) 3); // 3 is for player head
 		  			LivingEntity entity = event.getEntity();
 		  			  if ((entity instanceof MagmaCube)) {
-		  				skullMeta.setOwner("MHF_LavaSlime");}
+		  				skullMeta.setOwner("MHF_LavaSlime");
+		  				skullMeta.setDisplayName("Lava Slime Head");}
 		  			  else{
 		  				skullMeta.setOwner("MHF_Slime");
+		  				skullMeta.setDisplayName("Slime Head");
 		  			  }		  		
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
@@ -707,7 +746,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			}
 		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
-		  				  Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + event.getEntity().getKiller().getName() + " has decapetated a Slime");
+		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
 		  				  dropeos.add(1);}
 		  			  if(event.getEntity().getKiller() instanceof Player){
@@ -723,6 +762,326 @@ public class Main extends JavaPlugin implements Listener {
 	  
 	  
 	  }
+	  }
+	  
 
 	  
+	  @EventHandler
+	  public void onBlockBreak(BlockBreakEvent e) {
+		if(e.getBlock().getType().equals(Material.SKULL)) {
+			if(e.getBlock().getDrops().toString().contains("MHF_Spider")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Spider");
+				  skullMeta.setDisplayName("Spider Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_PigZombie")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_PigZombie");
+				  skullMeta.setDisplayName("Pigman Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_CaveSpider")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_CaveSpider");
+				  skullMeta.setDisplayName("Cave Spider Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Enderman")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Enderman");
+				  skullMeta.setDisplayName("Enderman Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("Blu3B3ar_")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("Blu3B3ar_");
+				  skullMeta.setDisplayName("Guardian Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("Master0r0")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("Master0r0");
+				  skullMeta.setDisplayName("Rabbit Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("PUNKwithFUNK")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("PUNKwithFUNK");
+				  skullMeta.setDisplayName("Bat Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("Quex")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("Quex");
+				  skullMeta.setDisplayName("SilverFish Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("WIbigdog")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("WIbigdog");
+				  skullMeta.setDisplayName("Witch Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("GoogleChrome")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("GoogleChrome");
+				  skullMeta.setDisplayName("Wolf Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Pumpkin")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Pumpkin");
+				  skullMeta.setDisplayName("Snowman Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("Whitehman")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("Whitehman");
+				  skullMeta.setDisplayName("Endermite Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("pukkapieman")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("pukkapieman");
+				  skullMeta.setDisplayName("Horse Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Blaze")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Blaze");
+				  skullMeta.setDisplayName("Blaze Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Squid")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Squid");
+				  skullMeta.setDisplayName("Squid Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Golem")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Golem");
+				  skullMeta.setDisplayName("IronGolem Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Ghast")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Ghast");
+				  skullMeta.setDisplayName("Ghast Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Pig}")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Pig");
+				  skullMeta.setDisplayName("Pig Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Villager")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Villager");
+				  skullMeta.setDisplayName("Villager Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Sheep")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Sheep");
+				  skullMeta.setDisplayName("Sheep Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Cow")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Cow");
+				  skullMeta.setDisplayName("Cow Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_MushroomCow")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_MushroomCow");
+				  skullMeta.setDisplayName("Mushroom Cow Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Chicken")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Chicken");
+				  skullMeta.setDisplayName("Chicken Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Ocelot")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Ocelot");
+				  skullMeta.setDisplayName("Ocelot Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_LavaSlime")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_LavaSlime");
+				  skullMeta.setDisplayName("Lava Slime Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			if(e.getBlock().getDrops().toString().contains("MHF_Slime")){  
+				  Block block = e.getBlock();
+				  block.setType(Material.AIR);
+				  ItemStack head = new ItemStack(Material.SKULL_ITEM,1);
+				  SkullMeta skullMeta = (SkullMeta) head.getItemMeta();
+				  head.setDurability((short) 3); 
+				  skullMeta.setOwner("MHF_Slime");
+				  skullMeta.setDisplayName("Slime Head");
+				  head.setItemMeta(skullMeta);
+				block.getWorld().dropItem(e.getPlayer().getLocation(), head);
+				  e.setCancelled(true); 
+				  }
+			
+		
+		}}
 }
