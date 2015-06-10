@@ -1,1 +1,7 @@
+#rate is including all the players in the server how many kills must be
+#monsters or players to the server to drop a head looting 3 count as 3 kills
+#use VICTIM where you want to put the entity that gives the head monster or player
+#use KILLER where you want the player name that get the head
+#use &a &b ... color codes
 rate: 300
+deathmsg: '&aKILLER &fhas decapetated a &4VICTIM'
