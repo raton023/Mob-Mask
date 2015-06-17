@@ -1,7 +1,16 @@
-#rate is including all the players in the server how many kills must be
+#rate is including all the players in the server how many kills must be of
 #monsters or players to the server to drop a head looting 3 count as 3 kills
+#the first kill on the server start as 0.
 #use VICTIM where you want to put the entity that gives the head monster or player
 #use KILLER where you want the player name that get the head
 #use &a &b ... color codes
+#maskduration is the the number of mobs needs to be killed with mask on before
+#it breakes, this count is set to all players, the count of players will be updated
+#on players and it will be increment by 1 every mob killed with mask by that player
+#Notch has killed 45 mobs using a mask XD
 rate: 300
 deathmsg: '&aKILLER &fhas decapetated a &4VICTIM'
+maskduration: 200
+maskbreakmsg: '&cPLAYER mask has been destroyed, you kill MOBSCOUNT mobs with it'
+players:
+  Notch: 45
