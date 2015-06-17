@@ -42,6 +42,7 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -56,16 +57,8 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
-		getConfig().options().copyHeader();
-		getConfig().options().copyDefaults(true);
-		if(getConfig().getString("rate") == null){
-			getConfig().set("rate", 300);
-		}
-		if(getConfig().getString("deathmsg") == null){
-			getConfig().set("deathmsg", "&aKILLER &fhas decapetated a &4VICTIM");
-		}
-		saveConfig();
-		}
+		saveDefaultConfig();
+	}
 	
 	@EventHandler
 	public void noami(EntityTargetLivingEntityEvent e){
@@ -79,6 +72,18 @@ public class Main extends JavaPlugin implements Listener {
 			}}
 	}
 	
+	
+	@EventHandler
+	public void noami(EntityDamageByEntityEvent e){
+		if (e.getEntity() instanceof Player){
+			Player p = (Player)e.getEntity();
+			if(p.hasPermission("mobmask.use")){
+			if (p.getInventory().getHelmet() != null) {//check if null. very important
+				if(p.getInventory().getHelmet().getType().equals(Material.SKULL_ITEM)){
+					e.setCancelled(true);}}
+			}}
+	}
+	
 			
 	  @EventHandler
 	  public void onEntityDeath(EntityDeathEvent event){
@@ -86,6 +91,21 @@ public class Main extends JavaPlugin implements Listener {
 		  if(event.getEntity().getKiller() instanceof Player){
 		  String getmsg = getConfig().getString("deathmsg").replace("KILLER", event.getEntity().getKiller().getName()).replace("VICTIM", event.getEntity().getName().toString());
 			String msg = ChatColor.translateAlternateColorCodes('&', getmsg);
+			if (event.getEntity().getKiller().getInventory().getHelmet() != null) {
+				if(event.getEntity().getKiller().getInventory().getHelmet().getType().equals(Material.SKULL_ITEM)){
+					int antes= getConfig().getInt("players."+event.getEntity().getKiller().getName());
+					int total= getConfig().getInt("maskduration");
+					getConfig().set("players."+event.getEntity().getKiller().getName(), antes+1);
+					saveConfig();
+					if(antes+1 == total){
+						event.getEntity().getKiller().getInventory().setHelmet(new ItemStack(Material.AIR));
+						String getmaskmsg = getConfig().getString("maskbreakmsg").replace("PLAYER", event.getEntity().getKiller().getName()).replace("MOBSCOUNT", String.valueOf(antes+1));
+						String maskmsg = ChatColor.translateAlternateColorCodes('&', getmaskmsg);
+						event.getEntity().getKiller().sendMessage(maskmsg);
+						getConfig().set("players."+event.getEntity().getKiller().getName(), 0);
+						saveConfig();
+					}
+					}}
 		  if(event.getEntity() instanceof Zombie) {
 			  
 			  LivingEntity entity = event.getEntity();
@@ -99,7 +119,7 @@ public class Main extends JavaPlugin implements Listener {
 	  			if (dropeos.isEmpty()) {
 	  				  dropeos.add(1); 
 	  			}
-	  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+	  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 	  				  event.getDrops().add(head);
 	  				  Bukkit.broadcastMessage(msg);
 	  				  dropeos.clear();
@@ -122,7 +142,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -146,7 +166,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -170,7 +190,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -191,7 +211,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			  head.setItemMeta(skullMeta);
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); }
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -222,7 +242,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -246,7 +266,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -270,7 +290,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -295,7 +315,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -319,7 +339,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -343,7 +363,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -367,7 +387,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -391,7 +411,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -415,7 +435,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -439,7 +459,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -463,7 +483,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -490,7 +510,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -514,7 +534,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -538,7 +558,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -563,7 +583,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -587,7 +607,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -611,7 +631,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -635,7 +655,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -665,7 +685,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -689,7 +709,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -713,7 +733,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
@@ -744,7 +764,7 @@ public class Main extends JavaPlugin implements Listener {
 		  			if (dropeos.isEmpty()) {
 		  				  dropeos.add(1); 
 		  			}
-		  			  if(dropeos.get(0) >= getConfig().getInt("rate")){
+		  			  if(dropeos.get(0) > getConfig().getInt("rate")){
 		  				  event.getDrops().add(head);
 		  				  Bukkit.broadcastMessage(msg);
 		  				  dropeos.clear();
